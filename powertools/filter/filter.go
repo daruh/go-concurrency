@@ -19,12 +19,12 @@ func main() {
 	algorithm, minSize, maxSize, suffixes, files := handleCommandLine()
 
 	if algorithm == 1 {
-		sink(filterSize(minSize, maxSize, filterSuffixes(suffixes, source(files))))
+		Sink(FilterSize(minSize, maxSize, FilterSuffixes(suffixes, Source(files))))
 	} else {
-		channel1 := source(files)
-		channel2 := filterSuffixes(suffixes, channel1)
-		channel3 := filterSize(minSize, maxSize, channel2)
-		sink(channel3)
+		channel1 := Source(files)
+		channel2 := FilterSuffixes(suffixes, channel1)
+		channel3 := FilterSize(minSize, maxSize, channel2)
+		Sink(channel3)
 	}
 }
 
@@ -48,7 +48,7 @@ func handleCommandLine() (algorithm int, minSize, maxSize int64, suffixes, files
 	return algorithm, minSize, maxSize, suffixes, files
 }
 
-func source(files []string) <-chan string {
+func Source(files []string) <-chan string {
 
 	out := make(chan string, 1000)
 	go func() {
@@ -61,7 +61,7 @@ func source(files []string) <-chan string {
 	return out
 }
 
-func filterSize(minimum, maximum int64, in <-chan string) <-chan string {
+func FilterSize(minimum, maximum int64, in <-chan string) <-chan string {
 	out := make(chan string, cap(in))
 
 	go func() {
@@ -88,7 +88,7 @@ func filterSize(minimum, maximum int64, in <-chan string) <-chan string {
 	return out
 }
 
-func filterSuffixes(suffixes []string, in <-chan string) <-chan string {
+func FilterSuffixes(suffixes []string, in <-chan string) <-chan string {
 	out := make(chan string, cap(in))
 
 	go func() {
@@ -111,7 +111,7 @@ func filterSuffixes(suffixes []string, in <-chan string) <-chan string {
 	return out
 }
 
-func sink(in <-chan string) {
+func Sink(in <-chan string) {
 	for filename := range in {
 		fmt.Println(filename)
 	}

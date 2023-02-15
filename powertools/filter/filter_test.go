@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func sinkCollection(in <-chan string) []string {
+func SinkCollection(in <-chan string) []string {
 	list := []string{}
 	for filename := range in {
 		list = append(list, filename)
@@ -18,7 +18,7 @@ func TestFilter(t *testing.T) {
 
 	suffixes := []string{".pdf"}
 
-	list := sinkCollection(filterSize(-1, -1, filterSuffixes(suffixes, source(files))))
+	list := SinkCollection(FilterSize(-1, -1, FilterSuffixes(suffixes, Source(files))))
 	assert.Equal(t, 1, len(list))
 	assert.Equal(t, "report.pdf", list[0])
 }
