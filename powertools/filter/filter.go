@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -14,6 +15,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU()) // Use all the machine's cores
 	log.SetFlags(0)
 
+	//-algorithm 1 -suffixes ".pdf" "file1.txt" "report.pdf" "document.xlsx"
 	algorithm, minSize, maxSize, suffixes, files := handleCommandLine()
 
 	if algorithm == 1 {
@@ -60,9 +62,30 @@ func source(files []string) <-chan string {
 }
 
 func filterSize(minimum, maximum int64, in <-chan string) <-chan string {
-	//out := make(chan string, cap(in))
+	out := make(chan string, cap(in))
 
-	return in
+	go func() {
+
+		for filename := range in {
+
+			if minimum == -1 && maximum == -1 {
+				out <- filename
+				continue
+			}
+			finfo, err := os.Stat(filename)
+			if err != nil {
+				continue
+				//ignore files we can't process
+			}
+			size := finfo.Size()
+			if (minimum == -1 || minimum > -1 && minimum <= size) &&
+				(maximum == -1 || maximum > -1 && maximum >= size) {
+				out <- filename
+			}
+		}
+		close(out)
+	}()
+	return out
 }
 
 func filterSuffixes(suffixes []string, in <-chan string) <-chan string {
