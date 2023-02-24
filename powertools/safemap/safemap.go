@@ -59,6 +59,9 @@ func (sm safeMap) run() {
 		case find:
 			value, found := store[command.key]
 			command.result <- findResult{value, found}
+		case update:
+			value, found := store[command.key]
+			store[command.key] = command.updater(value, found)
 		case end:
 			close(sm)
 			command.data <- store
@@ -87,9 +90,12 @@ func (sm safeMap) Len() int {
 	return (<-reply).(int)
 }
 
-func (sm safeMap) Update(s string, updateFunc UpdateFunc) {
-	//TODO implement me
-	panic("implement me")
+func (sm safeMap) Update(key string, updateFunc UpdateFunc) {
+	sm <- commandData{
+		action:  update,
+		key:     key,
+		updater: updateFunc,
+	}
 }
 
 func (sm safeMap) Close() map[string]interface{} {

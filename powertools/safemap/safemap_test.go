@@ -53,8 +53,24 @@ func TestSafeMap(t *testing.T) {
 		waiter.Done()
 	}()
 
-	fmt.Printf("Finished with %d items\n", store.Len())
 	waiter.Wait()
+	updater := func(value interface{}, found bool) interface{} {
+		if found {
+			return value.(int) * 1000
+		}
+		return 1
+	}
+	for _, i := range []int{5, 10, 15, 20, 25, 30, 35} {
+		key := fmt.Sprintf("0x%04X", i)
+		if value, found := store.Find(key); found {
+			fmt.Printf("Original m[%s] == %d\t", key, value)
+			store.Update(key, updater)
+			if value, found := store.Find(key); found {
+				fmt.Printf("Updated m[%s] == %5d\n", key, value)
+			}
+		}
+	}
+	fmt.Printf("Finished with %d items\n", store.Len())
 
 	data := store.Close()
 	fmt.Println("Closed")
